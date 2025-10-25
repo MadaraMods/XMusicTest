@@ -1,7 +1,9 @@
-name: Build ARM64 APK and Send to Telegram
+name: Build and Send APK to Telegram
+
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -10,33 +12,58 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Build ARM64 APK
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Build APK
       run: |
         chmod +x gradlew
         ./gradlew assembleDebug
-        # veya release için: ./gradlew assembleRelease
 
-    - name: Find and Prepare APK
+    - name: Find APK file
       run: |
-        # APK'yı bul ve ismini değiştir
-        APK_PATH=$(find . -name "*debug*.apk" -type f | head -1)
-        NEW_NAME="app-arm64-$(date +%Y%m%d-%H%M).apk"
-        cp "$APK_PATH" "$NEW_NAME"
-        echo "NEW_APK=$NEW_NAME" >> $GITHUB_ENV
+        find . -name "*.apk" -type f | head -1 > apk_path.txt
+        echo "APK found at: $(cat apk_path.txt)"
 
-    - name: Send ARM64 APK to Telegram
+    - name: Send Success to Telegram
+      if: success()
       env:
         BOT_TOKEN: "8245227298:AAGUKIoY7wMw-qpG8p6oFQdmNrmb1ZbxeBI"
-        CHAT_ID: "4614174608"
+        CHAT_ID: "3285651531"
       run: |
+        APK_PATH=$(cat apk_path.txt)
+        APK_NAME=$(basename "$APK_PATH")
+        
         curl -F chat_id="$CHAT_ID" \
-             -F document=@"$NEW_APK" \
-             -F caption="📱 ARM64 APK Build Tamamlandı! 🎯
-        
-        🏗️ Repository: ${{ github.repository }}
-        📱 APK: $NEW_APK
-        🏷️ Commit: ${{ github.sha }}
-        ⚡ ARM64 Optimized
-        
-        Hemen indir ve test et! 👇" \
+             -F document=@"$APK_PATH" \
+             -F caption="✅ APK Build BAŞARILI! 🎉
+
+📱 APK: $APK_NAME
+🏗️ Repo: ${{ github.repository }}
+🔧 Branch: ${{ github.ref }}
+⏰ Time: $(date)
+
+İndir ve test et! 👇" \
              "https://api.telegram.org/bot$BOT_TOKEN/sendDocument"
+
+    - name: Send Failure to Telegram
+      if: failure()
+      env:
+        BOT_TOKEN: "7560748316:AAEUvfZbKbOzKZmKkEF-wJZ1f49fAgBGSK4"
+        CHAT_ID: "3126191562"
+      run: |
+        curl -s -X POST \
+          "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
+          -d "chat_id=$CHAT_ID" \
+          -d "text=❌ APK Build BAŞARISIZ! 🚨
+
+🏗️ Repo: ${{ github.repository }}
+🔧 Branch: ${{ github.ref }}
+⏰ Time: $(date)
+🔍 Hata: Build işlemi başarısız oldu
+
+Lütfen GitHub Actions loglarını kontrol et! 📋" \
+          -d "parse_mode=HTML"
