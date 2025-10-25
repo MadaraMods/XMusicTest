@@ -2,41 +2,20 @@ name: Notify Telegram on Star
 on:
   watch:
     types: [started]
-  workflow_dispatch: {} # manuel test için
+  workflow_dispatch: {}
 
 jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-    - name: Send Telegram message about new star
+    - name: Send Telegram message
       env:
         TELEGRAM_BOT_TOKEN: "7560748316:AAEUvfZbKbOzKZmKkEF-wJZ1f49fAgBGSK4"
         TELEGRAM_CHAT_ID: "3126191562"
-        TELEGRAM_MESSAGE_THREAD_ID: "3126191562"
-        REPO: ${{ github.repository }}
-        STARER: ${{ github.event.sender.login || github.actor }}
-        STARER_URL: ${{ github.event.sender.html_url || format('https://github.com/{0}', github.event.sender.login) }}
       run: |
-        # Gerekli kontroller
-        if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
-          echo "Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID secret. Aborting."
-          exit 1
-        fi
-
-        # Mesaj içeriği (düzgün formatlı)
-        MESSAGE="⭐ Yeni yıldız! ⭐
-
-📦 Repo: $REPO
-👤 Kullanıcı: $STARER
-🔗 Profil: $STARER_URL
-
-Tebrikler! Reponuza yıldız verildi! 🎉"
-
-        # Telegram'a mesaj gönder
+        MESSAGE="⭐ Test mesajı çalışıyor! ⭐"
+        
         curl -s -X POST \
           "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
           -d "chat_id=$TELEGRAM_CHAT_ID" \
-          -d "message_thread_id=$TELEGRAM_MESSAGE_THREAD_ID" \
-          -d "text=$MESSAGE" \
-          -d "parse_mode=HTML" \
-          -d "disable_web_page_preview=false"
+          -d "text=$MESSAGE"
