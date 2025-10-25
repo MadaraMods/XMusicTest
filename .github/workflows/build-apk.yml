@@ -26,8 +26,8 @@ jobs:
 
     - name: Send ARM64 APK to Telegram
       env:
-        BOT_TOKEN: "7560748316:AAEUvfZbKbOzKZmKkEF-wJZ1f49fAgBGSK4"
-        CHAT_ID: "3126191562"
+        BOT_TOKEN: "8245227298:AAGUKIoY7wMw-qpG8p6oFQdmNrmb1ZbxeBI"
+        CHAT_ID: "4614174608"
       run: |
         curl -F chat_id="$CHAT_ID" \
              -F document=@"$NEW_APK" \
