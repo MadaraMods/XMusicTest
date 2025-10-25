@@ -10,7 +10,7 @@ jobs:
     steps:
     - name: Send Telegram message
       env:
-        TELEGRAM_BOT_TOKEN: "7560748316:AAEUvfZbKbOzKZmKkEF-wJZ1f49fAgBGSK4"
+        TELEGRAM_BOT_TOKEN: "AAEUvfZbKbOzKZmKkEF-wJZ1f49fAgBGSK4"
         TELEGRAM_CHAT_ID: "3126191562"
       run: |
         MESSAGE="⭐ Test mesajı çalışıyor! ⭐"
