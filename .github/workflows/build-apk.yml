@@ -1,0 +1,42 @@
+name: Build ARM64 APK and Send to Telegram
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Build ARM64 APK
+      run: |
+        chmod +x gradlew
+        ./gradlew assembleDebug
+        # veya release için: ./gradlew assembleRelease
+
+    - name: Find and Prepare APK
+      run: |
+        # APK'yı bul ve ismini değiştir
+        APK_PATH=$(find . -name "*debug*.apk" -type f | head -1)
+        NEW_NAME="app-arm64-$(date +%Y%m%d-%H%M).apk"
+        cp "$APK_PATH" "$NEW_NAME"
+        echo "NEW_APK=$NEW_NAME" >> $GITHUB_ENV
+
+    - name: Send ARM64 APK to Telegram
+      env:
+        BOT_TOKEN: "7560748316:AAEUvfZbKbOzKZmKkEF-wJZ1f49fAgBGSK4"
+        CHAT_ID: "3126191562"
+      run: |
+        curl -F chat_id="$CHAT_ID" \
+             -F document=@"$NEW_APK" \
+             -F caption="📱 ARM64 APK Build Tamamlandı! 🎯
+        
+        🏗️ Repository: ${{ github.repository }}
+        📱 APK: $NEW_APK
+        🏷️ Commit: ${{ github.sha }}
+        ⚡ ARM64 Optimized
+        
+        Hemen indir ve test et! 👇" \
+             "https://api.telegram.org/bot$BOT_TOKEN/sendDocument"
